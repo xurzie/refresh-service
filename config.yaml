@@ -1,0 +1,3 @@
+EthAddressOwnership:
+  settings:
+    timeExpiration: 5m
