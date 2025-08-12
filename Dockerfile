@@ -23,6 +23,7 @@ RUN chmod g+rx,o+rx /
 WORKDIR /app
 
 COPY ./keys keys
+COPY ./circuits circuits
 COPY --from=base /build/refresh-service refresh-service
 
 ENV CIRCUITS_FOLDER_PATH=/app/keys

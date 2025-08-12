@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -70,13 +72,26 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 		return nil, errors.Wrapf(ErrGetClaim,
 			"invalid status code: '%d'", resp.StatusCode)
 	}
-	credential := &verifiable.W3CCredential{}
-	err = json.NewDecoder(resp.Body).Decode(credential)
+
+	// 📥 Читаем и логируем тело
+	rawBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return credential, errors.Wrapf(ErrGetClaim,
+		return nil, errors.Wrapf(ErrGetClaim, "failed to read response body: '%v'", err)
+	}
+	log.Printf("📡 Raw response from issuer node (%s):\n%s", getRequest.URL.String(), string(rawBody))
+
+	resp.Body = io.NopCloser(bytes.NewBuffer(rawBody))
+
+	var response struct {
+		VC verifiable.W3CCredential `json:"vc"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, errors.Wrapf(ErrGetClaim,
 			"failed to decode response: '%v'", err)
 	}
-	return credential, nil
+	log.Printf("✅ Parsed VC: %+v\n", response.VC)
+	return &response.VC, nil
 }
 
 func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest credentialRequest) (
