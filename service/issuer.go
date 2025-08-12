@@ -20,7 +20,6 @@ var (
 	ErrCreateClaim        = errors.New("failed to create claim")
 )
 
-// IssuerService is service for communication with issuer node
 type IssuerService struct {
 	supportedIssuers map[string]string
 	issuerBasicAuth  map[string]string
@@ -73,7 +72,6 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 			"invalid status code: '%d'", resp.StatusCode)
 	}
 
-	// 📥 Читаем и логируем тело
 	rawBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrapf(ErrGetClaim, "failed to read response body: '%v'", err)

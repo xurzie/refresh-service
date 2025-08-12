@@ -62,7 +62,6 @@ func (rs *RefreshService) Process(
 		return nil, err
 	}
 
-	// DEBUG: лог сырого креденшела
 	credentialJSON, err := json.MarshalIndent(credential, "", "  ")
 	if err != nil {
 		log.Printf("❌ Failed to marshal credential: %v", err)
@@ -70,11 +69,9 @@ func (rs *RefreshService) Process(
 	}
 	log.Printf("🧾 Full credential:\n%s", credentialJSON)
 
-	// DEBUG: логируем важные поля
 	log.Printf("🔎 Parsed credential — issuer: '%s', type: '%v', subject: %+v",
 		credential.Issuer, credential.Type, credential.CredentialSubject)
 
-	// Проверка subject
 	if credential.CredentialSubject == nil {
 		log.Printf("❌ Credential subject is nil")
 		return nil, errors.New("credential subject is nil")
@@ -82,19 +79,16 @@ func (rs *RefreshService) Process(
 
 	log.Printf("✅ Retrieved credential with subject: %+v", credential.CredentialSubject)
 
-	// Проверка, можно ли обновлять
 	if err := isUpdatable(credential); err != nil {
 		log.Printf("⚠️ Credential not updatable: %v", err)
 		return nil, errors.Wrapf(ErrCredentialNotUpdatable, "credential '%s': %v", credential.ID, err)
 	}
 
-	// Проверка владельца
 	if err := checkOwnerShip(credential, owner); err != nil {
 		log.Printf("⚠️ Ownership mismatch: %v", err)
 		return nil, errors.Wrapf(ErrCredentialNotUpdatable, "credential '%s': %v", credential.ID, err)
 	}
 
-	// Преобразуем в байти
 	credentialBytes, err := json.Marshal(credential)
 	if err != nil {
 		return nil, err
